@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button, User } from "@heroui/react";
 import { useSession } from "../providers/SessionProvider";
 
 export default function Dashboard() {
@@ -6,8 +6,7 @@ export default function Dashboard() {
   return (
     <>
       <Button onPressUp={logout}>Log out</Button>
-      <div>{currentUser?.name}</div>
-      <div>{currentUser?.email}</div>
+      <User avatarProps={{ src: currentUser?.picture }} description={currentUser?.email} name={currentUser?.name} />
     </>
   );
 }

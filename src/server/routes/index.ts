@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { googleLogin } from "../utils/googleAuth";
+import { attachOAuth2Client, gmailList, googleLogin } from "../utils/googleAuth";
 import authMiddleware from "../utils/authMiddleware";
 
 const router = Router();
@@ -22,5 +22,7 @@ router.get("/logout", (_req, res) => {
   });
   res.status(200).json({ message: "Logged out" });
 });
+
+router.get("/gmail-list", attachOAuth2Client, gmailList);
 
 export default router;
