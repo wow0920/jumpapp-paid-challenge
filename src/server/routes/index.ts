@@ -14,7 +14,7 @@ router.get("/me", authMiddleware, (req, res) => {
   }
 });
 
-router.get("/logout", (req, res) => {
+router.get("/logout", (_req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: false, // true in production with HTTPS
