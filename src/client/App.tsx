@@ -5,7 +5,7 @@ import { useSession } from "./components/providers/SessionProvider";
 
 function App() {
   const { isAuthenticated } = useSession();
-  return <>{isAuthenticated ? <Login /> : <Dashboard />}</>;
+  return <>{isAuthenticated ? <Dashboard /> : <Login />}</>;
 }
 
 export default App;

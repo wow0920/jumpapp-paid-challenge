@@ -21,7 +21,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     picture: payload.picture,
   };
 
-  const token = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: "1h" });
+  const token = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: "1d" });
 
   res.cookie("token", token, {
     httpOnly: true,
