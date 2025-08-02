@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   line-height: 1.5;
   font-weight: 400;
 

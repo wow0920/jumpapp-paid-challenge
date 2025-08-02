@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import jwt from "jsonwebtoken";
 import authMiddleware from "./authMiddleware";

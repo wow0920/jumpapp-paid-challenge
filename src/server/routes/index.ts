@@ -17,9 +17,15 @@ router.get("/me", authMiddleware, (req, res) => {
 router.get("/logout", (_req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: false, // true in production with HTTPS
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
   });
+  res.clearCookie("refresh_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
   res.status(200).json({ message: "Logged out" });
 });
 

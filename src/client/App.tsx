@@ -5,6 +5,7 @@ import { useSession } from "./components/providers/SessionProvider";
 
 function App() {
   const { isAuthenticated } = useSession();
+
   return (
     <main className="w-screen h-screen overflow-auto flex flex-col">
       {isAuthenticated ? <Dashboard /> : <Login />}
