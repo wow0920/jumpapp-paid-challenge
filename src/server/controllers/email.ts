@@ -1,3 +1,4 @@
+import { Email } from "../generated/prisma";
 import prisma from "../prisma";
 import { syncEmails as syncEmailsProc } from "../services/emailSync";
 import { processUnsubscribe } from "../services/unsubscribeService";
@@ -169,7 +170,7 @@ export async function bulkUnsubscribe(req: any, res: any) {
     }
 
     // Process unsubscribe for each email in the background
-    emails.forEach((email) => {
+    emails.forEach((email: Email) => {
       processUnsubscribe(email.id).catch((error) => {
         console.error(`Error processing unsubscribe for email ${email.id}:`, error);
       });

@@ -1,3 +1,4 @@
+import { Category } from "../generated/prisma";
 import prisma from "../prisma";
 
 // Get all categories for the current user
@@ -12,7 +13,7 @@ export async function getCategories(req: any, res: any) {
 
     // Get email count for each category
     const categoriesWithCount = await Promise.all(
-      categories.map(async (category) => {
+      categories.map(async (category: Category) => {
         const emailCount = await prisma.email.count({
           where: {
             categoryId: category.id,
