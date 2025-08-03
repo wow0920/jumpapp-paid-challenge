@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { google } from "googleapis";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma";
+import { getOAuth2Client } from "../services/emailSync";
 
 export const getAccounts = async (userId: string, withRefreshToken: boolean = false) => {
   return await prisma.gmailAccount.findMany({
@@ -16,17 +17,6 @@ export const getAccounts = async (userId: string, withRefreshToken: boolean = fa
     },
     orderBy: [{ createdAt: "asc" }],
   });
-};
-
-export const getOAuth2Client = async (refresh_token: string) => {
-  const oauth2Client = new google.auth.OAuth2(process.env.VITE_GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, "postmessage");
-  oauth2Client.setCredentials({ refresh_token });
-
-  try {
-    await oauth2Client.getAccessToken(); // auto-refresh access_token
-  } catch (err) {}
-
-  return oauth2Client;
 };
 
 export const getOAuth2Clients = async (userId: string) => {

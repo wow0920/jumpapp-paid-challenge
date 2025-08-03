@@ -26,6 +26,17 @@ export async function syncEmails(userId: string): Promise<void> {
   }
 }
 
+export async function getOAuth2Client(refresh_token: string) {
+  const oauth2Client = new google.auth.OAuth2(process.env.VITE_GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, "postmessage");
+  oauth2Client.setCredentials({ refresh_token });
+
+  try {
+    await oauth2Client.getAccessToken(); // auto-refresh access_token
+  } catch (err) {}
+
+  return oauth2Client;
+}
+
 // Function to sync emails for a specific Gmail account
 async function syncAccountEmails(accountId: string, userId: string): Promise<void> {
   try {
@@ -40,13 +51,7 @@ async function syncAccountEmails(accountId: string, userId: string): Promise<voi
     }
 
     // Create OAuth2 client
-    const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, "postmessage");
-
-    // Set credentials
-    oauth2Client.setCredentials({
-      access_token: account.accessToken,
-      refresh_token: account.refreshToken,
-    });
+    const oauth2Client = await getOAuth2Client(account.refreshToken);
 
     // Create Gmail client
     const gmail = google.gmail({ version: "v1", auth: oauth2Client });

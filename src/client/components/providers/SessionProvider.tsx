@@ -39,7 +39,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
   const login = useGoogleLogin({
     flow: "auth-code",
-    scope: "https://www.googleapis.com/auth/gmail.readonly",
+    scope: "https://www.googleapis.com/auth/gmail.modify",
     onSuccess: async ({ code }) => {
       await axios.post("/api/google-login", { code }, { withCredentials: true });
       refreshUser();
