@@ -53,9 +53,9 @@ export default function Dashboard() {
                 as="button"
                 className="transition-transform"
                 color="secondary"
-                name={currentUser?.accounts[0]?.name}
+                name={currentUser?.accounts?.[0]?.name}
                 size="sm"
-                src={currentUser?.accounts[0]?.picture}
+                src={currentUser?.accounts?.[0]?.picture}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="Profile Actions" variant="flat">
