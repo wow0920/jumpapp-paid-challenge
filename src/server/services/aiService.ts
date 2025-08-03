@@ -8,6 +8,7 @@ const openai = new OpenAI({
 });
 
 export function extractJSON(input: string) {
+  return JSON.parse(input.replaceAll("```json", "").replaceAll("```", ""));
   const startChars = ["{", "["];
   const endChars = { "{": "}", "[": "]" };
 
@@ -186,7 +187,7 @@ export async function generateCategory(categories = []) {
 ${categories.map((c) => `- ${c.name}: ${c.description}`).join("\n")}
 
 Suggest a completely new category name and description (no overlap).
-Respond only in this JSON format:
+Respond only in this pure JSON format without any other characters:
 {
   "name": "New Category Name",
   "description": "What this category includes"
