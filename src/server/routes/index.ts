@@ -19,4 +19,6 @@ router.post("/categories", authMiddleware, category.createCategory);
 router.put("/categories/:id", authMiddleware, category.updateCategory);
 router.delete("/categories/:id", authMiddleware, category.deleteCategory);
 
+router.post("/categories-ai", authMiddleware, category.generateCategoryAI);
+
 export default router;

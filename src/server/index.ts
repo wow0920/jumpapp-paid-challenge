@@ -1,6 +1,4 @@
-import { config } from "dotenv";
-config();
-
+import "dotenv/config";
 import express from "express";
 import ViteExpress from "vite-express";
 import routes from "./routes";

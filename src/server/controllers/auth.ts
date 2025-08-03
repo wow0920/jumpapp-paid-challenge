@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Request, Response } from "express";
 import { google } from "googleapis";
 import jwt from "jsonwebtoken";

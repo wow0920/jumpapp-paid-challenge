@@ -1,5 +1,6 @@
 import { Category } from "../generated/prisma";
 import prisma from "../prisma";
+import * as aiService from "../services/aiService";
 
 // Get all categories for the current user
 export async function getCategories(req: any, res: any) {
@@ -186,5 +187,22 @@ export async function deleteCategory(req: any, res: any) {
   } catch (error) {
     console.error("Error deleting category:", error);
     res.status(500).json({ error: "Failed to delete category" });
+  }
+}
+
+// Generate a category
+export async function generateCategoryAI(req: any, res: any) {
+  try {
+    const userId = (req.user as any).id;
+    const categories = await prisma.category.findMany({
+      where: { userId },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const newCategory = await aiService.generateCategory(categories);
+    return res.json(newCategory);
+  } catch (error) {
+    console.error("Error generating category:", error);
+    res.status(500).json({ error: "Failed to generate category" });
   }
 }

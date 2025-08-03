@@ -21,14 +21,46 @@ import { Category } from "../../utils/types";
 import { MdAdd } from "react-icons/md";
 import { FaCheck, FaEdit, FaTimes, FaTrashAlt } from "react-icons/fa";
 import { useModal } from "../providers/ModalProvider";
+import { IoSparkles } from "react-icons/io5";
 
 const EditCategory = ({ category, isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const onSubmit = async (obj) => {
+
+  const [name, setName] = useState<string>(category?.name ?? "");
+  const [description, setDescription] = useState<string>(category?.description ?? "");
+
+  useEffect(() => {
+    setName(category?.name ?? "");
+    setDescription(category?.description ?? "");
+  }, [category]);
+
+  const generateCategory = async () => {
+    setIsLoading(true);
+    try {
+      const { name, description } = await axios.post("/api/categories-ai").then(({ data }) => data);
+      setName(name);
+      setDescription(description);
+    } catch (e) {
+      console.error(e);
+      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while generating category." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setName("");
+    setDescription("");
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  const submitCategory = async (obj) => {
     setIsLoading(true);
 
     try {
-      if (category) {
+      if (category?.id) {
         await axios.put(`/api/categories/${category.id}`, obj);
         addToast({ title: "Success", color: "success", description: "Category was successfully updated." });
       } else {
@@ -42,7 +74,7 @@ const EditCategory = ({ category, isOpen, onClose }) => {
       setIsLoading(false);
     }
 
-    onClose();
+    handleClose();
   };
 
   const handleSubmit = (e) => {
@@ -51,20 +83,27 @@ const EditCategory = ({ category, isOpen, onClose }) => {
       return;
     }
 
-    onSubmit(Object.fromEntries(new FormData(e.currentTarget)));
+    submitCategory(Object.fromEntries(new FormData(e.currentTarget)));
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={handleClose}>
       <ModalContent>
         <form onSubmit={handleSubmit}>
           <ModalHeader className="flex flex-col">
-            <p>{category ? "Edit" : "Add"} Category</p>
+            <p>{category?.id ? "Edit" : "Add"} Category</p>
           </ModalHeader>
           <ModalBody>
+            {!category?.id && (
+              <Button isDisabled={isLoading} startContent={<IoSparkles />} onPress={generateCategory}>
+                Generate using AI
+              </Button>
+            )}
             <Input
               isDisabled={isLoading}
               isRequired
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               label="Name"
               name="name"
               placeholder="e.g., Work, Personal, Shopping"
@@ -73,6 +112,8 @@ const EditCategory = ({ category, isOpen, onClose }) => {
             <Textarea
               isDisabled={isLoading}
               isRequired
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               label="Description"
               name="description"
               placeholder="Describe what emails should go in this category..."
@@ -80,7 +121,7 @@ const EditCategory = ({ category, isOpen, onClose }) => {
             />
           </ModalBody>
           <ModalFooter>
-            <Button isDisabled={isLoading} type="button" color="default" startContent={<FaTimes />} onPress={onClose}>
+            <Button isDisabled={isLoading} type="button" color="default" startContent={<FaTimes />} onPress={handleClose}>
               Cancel
             </Button>
             <Button isDisabled={isLoading} type="submit" color="primary" startContent={<FaCheck />}>
@@ -151,7 +192,9 @@ export default function Categories() {
   };
 
   useEffect(() => {
-    if (!modalOpen) fetchCategories(false);
+    if (!modalOpen) {
+      fetchCategories(false);
+    }
   }, [modalOpen]);
 
   return (

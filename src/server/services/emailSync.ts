@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { google } from "googleapis";
 import prisma from "../prisma";
 import { categorizeEmail, summarizeEmail, extractUnsubscribeLink } from "./aiService";

@@ -1,6 +1,6 @@
-import { Avatar, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Navbar, NavbarBrand, NavbarContent, Tab, Tabs, User } from "@heroui/react";
+import { Avatar, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Navbar, NavbarBrand, NavbarContent, User } from "@heroui/react";
 import { useSession } from "../providers/SessionProvider";
-import { MdLogout, MdDeleteForever } from "react-icons/md";
+import { MdLogout } from "react-icons/md";
 import { useModal } from "../providers/ModalProvider";
 import ThemeSwitch from "../ThemeSwitch";
 import { Account } from "../../utils/types";
