@@ -54,10 +54,6 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    console.log("==== current user:", user);
-  }, [user]);
-
-  useEffect(() => {
     refreshUser();
   }, []);
 

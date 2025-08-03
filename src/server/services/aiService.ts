@@ -81,22 +81,14 @@ export async function categorizeEmail(subject: string, body: string, categories:
     const truncatedContent = textContent.length > 5000 ? textContent.substring(0, 5000) + "..." : textContent;
 
     // Create category descriptions
-    const categoryDescriptions = categories.map((category) => `${category.name}: ${category.description}`).join("\n");
+    const categoryDescriptions = JSON.stringify(categories);
 
-    const prompt = `
-      Categorize the following email into one of these categories:
+    const prompt = `Categorize the following email into one of these categories(JSON): ${categoryDescriptions}
+Respond only category ID string and nothing else. not any other characters in pure string so that I can use your response directly as category ID check.      
+Please respond with only one category ID that's most relevant to this email. Not multiple, not zero.
       
-      ${categoryDescriptions}
-      
-      If the email doesn't fit any category, respond with "None".
-      
-      Email Subject: ${subject}
-      
-      Email Body:
-      ${truncatedContent}
-      
-      Category:
-    `;
+Email Subject: ${subject}
+Email Body: ${truncatedContent}`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -105,14 +97,10 @@ export async function categorizeEmail(subject: string, body: string, categories:
       temperature: 0.3,
     });
 
-    const categoryName = response.choices[0].message.content?.trim();
-
-    if (!categoryName || categoryName === "None") {
-      return null;
-    }
+    const categoryID = response.choices[0].message.content?.trim();
 
     // Find the category ID by name
-    const category = categories.find((c) => c.name.toLowerCase() === categoryName.toLowerCase());
+    const category = categories.find((c) => c.id.toLowerCase() === categoryID.toLowerCase());
 
     return category ? category.id : null;
   } catch (error) {
@@ -186,7 +174,7 @@ export async function generateCategory(categories = []) {
 
 ${categories.map((c) => `- ${c.name}: ${c.description}`).join("\n")}
 
-Suggest a completely new category name and description (no overlap).
+Suggest a completely new category name and description (no overlap). Category name should be less than 20 letters.
 Respond only in this pure JSON format without any other characters:
 {
   "name": "New Category Name",

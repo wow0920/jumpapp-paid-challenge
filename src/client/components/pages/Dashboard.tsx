@@ -1,4 +1,16 @@
-import { Avatar, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Navbar, NavbarBrand, NavbarContent, User } from "@heroui/react";
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  Tooltip,
+  User,
+} from "@heroui/react";
 import { useSession } from "../providers/SessionProvider";
 import { MdLogout } from "react-icons/md";
 import { useModal } from "../providers/ModalProvider";
@@ -6,7 +18,9 @@ import ThemeSwitch from "../ThemeSwitch";
 import { Account } from "../../utils/types";
 import { DropdownSection } from "@heroui/react";
 import { IoMdPersonAdd } from "react-icons/io";
+import { FiRefreshCw } from "react-icons/fi";
 import Categories from "./Categories";
+import axios from "axios";
 
 export default function Dashboard() {
   const { login, logout, currentUser } = useSession();
@@ -17,6 +31,10 @@ export default function Dashboard() {
       title: "Are you sure you want to sign out?",
       onOK: logout,
     });
+  };
+
+  const handleSync = async () => {
+    await axios.post("/api/gmail-sync");
   };
 
   return (
@@ -62,8 +80,13 @@ export default function Dashboard() {
               </DropdownSection>
             </DropdownMenu>
           </Dropdown>
+          <Tooltip content="Sync" color="primary">
+            <Button isIconOnly radius="full" variant="flat" color="primary" onPress={handleSync}>
+              <FiRefreshCw className="text-lg" />
+            </Button>
+          </Tooltip>
+          <ThemeSwitch />
         </NavbarContent>
-        <ThemeSwitch />
       </Navbar>
       <div className="max-w-[1024px] m-auto flex flex-col flex-1 w-full p-6 gap-4">
         <Categories />

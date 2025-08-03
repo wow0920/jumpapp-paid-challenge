@@ -9,7 +9,7 @@ function App() {
   return (
     <main className="w-screen h-screen overflow-auto flex flex-col">
       {isAuthenticated ? <Dashboard /> : <Login />}
-      <div className="fixed bottom-5 w-full text-center pointer-events-none">
+      <div className="fixed bottom-5 text-center pointer-events-none backdrop-blur-xl px-5 py-2.5 rounded-full left-[50%] translate-x-[-50%] shadow-2xl z-10">
         2025© Made with ❤️ by{" "}
         <a target="_blank" href="mailto:frcarlton95@gmail.com" className="pointer-events-auto">
           Forrest Carlton

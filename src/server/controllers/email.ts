@@ -39,6 +39,22 @@ export async function getEmail(req: any, res: any) {
   }
 }
 
+export async function getEmails(req: any, res: any) {
+  try {
+    const { cid } = req.params;
+    const userId = (req.user as any).id;
+
+    const emails = await prisma.email.findMany({
+      where: { userId, categoryId: cid },
+      orderBy: { receivedAt: "desc" },
+    });
+    res.json(emails);
+  } catch (error) {
+    console.error("Error fetching email:", error);
+    res.status(500).json({ error: "Failed to fetch email" });
+  }
+}
+
 // Sync emails from Gmail
 export async function syncEmails(req: any, res: any) {
   try {
@@ -182,3 +198,24 @@ export async function bulkUnsubscribe(req: any, res: any) {
     res.status(500).json({ error: "Failed to process bulk unsubscribe" });
   }
 }
+
+/*
+export async function onGmailPush(req: Request, res: Response) {
+  // The Pub/Sub message is base64 encoded inside req.body.message.data
+  const pubsubMessage = req.body.message;
+
+  if (!pubsubMessage || !pubsubMessage.data) {
+    return res.status(400).send("Invalid Pub/Sub message format");
+  }
+
+  const dataBuffer = Buffer.from(pubsubMessage.data, "base64");
+  const dataJson = dataBuffer.toString("utf-8");
+
+  // This data contains the Gmail historyId indicating mailbox changes
+  const history = JSON.parse(dataJson);
+
+console.log("Gmail push notification:", history);
+
+  res.status(200).send("OK");
+}
+*/

@@ -14,6 +14,7 @@ import {
   ModalHeader,
   Skeleton,
   Textarea,
+  Tooltip,
 } from "@heroui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -22,6 +23,7 @@ import { MdAdd } from "react-icons/md";
 import { FaCheck, FaEdit, FaTimes, FaTrashAlt } from "react-icons/fa";
 import { useModal } from "../providers/ModalProvider";
 import { IoSparkles } from "react-icons/io5";
+import Emails from "./Emails";
 
 const EditCategory = ({ category, isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -95,7 +97,7 @@ const EditCategory = ({ category, isOpen, onClose }) => {
           </ModalHeader>
           <ModalBody>
             {!category?.id && (
-              <Button isDisabled={isLoading} startContent={<IoSparkles />} onPress={generateCategory}>
+              <Button variant="flat" color="primary" isDisabled={isLoading} startContent={<IoSparkles />} onPress={generateCategory}>
                 Generate using AI
               </Button>
             )}
@@ -139,7 +141,8 @@ export default function Categories() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<Category>(null);
-  const [categories, setCategories] = useState<Category[]>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchCategories = async (forceRefresh = true) => {
@@ -199,41 +202,59 @@ export default function Categories() {
 
   return (
     <>
-      <div className="flex">
-        <Button startContent={<MdAdd />} onClick={handleAddCategory} color="primary">
-          New Category
-        </Button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {isLoading ? (
-          <>
-            {new Array(6).map((_, i) => (
-              <Skeleton key={i} />
-            ))}
-          </>
-        ) : (
-          <>
-            {(categories ?? []).map(({ id, name, description, emailCount }) => (
-              <Card key={id}>
-                <CardHeader className="justify-between px-5 font-bold">
-                  <div className="text-lg">{name}</div>
-                  {emailCount > 0 && <Chip size="sm">{emailCount}</Chip>}
-                  <div className="flex gap-1">
-                    <Button radius="full" variant="light" size="sm" isIconOnly onPress={() => handlEditCategory({ id, name, description })}>
-                      <FaEdit className="text-medium" />
-                    </Button>
-                    <Button radius="full" variant="light" size="sm" isIconOnly onPress={() => handleDeleteCategory(id)}>
-                      <FaTrashAlt className="text-medium" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody className="text-sm p-5 opacity-70">{description}</CardBody>
-              </Card>
-            ))}
-          </>
-        )}
-      </div>
+      {!selectedCategory ? (
+        <>
+          <div className="flex justify-between">
+            <h1>Email Categories</h1>
+            <Button startContent={<MdAdd />} onPress={handleAddCategory} color="primary">
+              New Category
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {isLoading ? (
+              <>
+                {new Array(6).map((_, i) => (
+                  <Skeleton key={i} />
+                ))}
+              </>
+            ) : (
+              <>
+                {(categories ?? []).map(({ id, name, description, emailCount }) => (
+                  <Card key={id}>
+                    <CardHeader className="justify-between font-bold ">
+                      <Tooltip content={`Emails: ${emailCount}`}>
+                        <Button
+                          className="text-lg flex items-center gap-3"
+                          variant="light"
+                          onPress={() => setSelectedCategory({ id, name, description })}
+                        >
+                          <span>{name}</span>
+                          {emailCount > 0 && <Chip size="sm">{emailCount}</Chip>}
+                        </Button>
+                      </Tooltip>
+                      <div className="flex gap-1">
+                        <Button radius="full" variant="light" size="sm" isIconOnly onPress={() => handlEditCategory({ id, name, description })}>
+                          <FaEdit className="text-medium" />
+                        </Button>
+                        <Button radius="full" variant="light" size="sm" isIconOnly onPress={() => handleDeleteCategory(id)}>
+                          <FaTrashAlt className="text-medium" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <Divider />
+                    <CardBody className="text-sm p-5 opacity-70">{description}</CardBody>
+                  </Card>
+                ))}
+              </>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          <Emails category={selectedCategory} onBack={() => setSelectedCategory(null)} />
+        </>
+      )}
+
       <EditCategory isOpen={modalOpen} category={editCategory} onClose={() => setModalOpen(false)} />
     </>
   );

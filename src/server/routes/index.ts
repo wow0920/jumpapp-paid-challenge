@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as auth from "../controllers/auth";
 import * as category from "../controllers/category";
+import * as email from "../controllers/email";
 import { attachUser, authMiddleware } from "../middlewares/auth";
 
 const router = Router();
@@ -20,5 +21,10 @@ router.put("/categories/:id", authMiddleware, category.updateCategory);
 router.delete("/categories/:id", authMiddleware, category.deleteCategory);
 
 router.post("/categories-ai", authMiddleware, category.generateCategoryAI);
+
+/// Gmail sync
+router.get("/emails/:cid", authMiddleware, email.getEmails);
+// router.get("/gmail-push", email.onGmailPush);
+router.post("/gmail-sync", authMiddleware, email.syncEmails);
 
 export default router;

@@ -17,3 +17,12 @@ export type Category = {
   description: string;
   emailCount?: number;
 };
+
+export type Email = {
+  id: string;
+  subject: string;
+  sender: string;
+  receivedAt: string;
+  body: string;
+  summary: string;
+};

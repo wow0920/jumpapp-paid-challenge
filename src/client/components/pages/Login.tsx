@@ -16,7 +16,7 @@ export default function Login() {
         <CardBody>
           <p>Sign in to manage your emails with AI</p>
         </CardBody>
-        <Button disabled={loading} onPressUp={() => login()}>
+        <Button disabled={loading} onPress={() => login()}>
           Sign in with
           <FcGoogle className="text-2xl" />
         </Button>
