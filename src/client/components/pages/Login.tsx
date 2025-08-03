@@ -1,21 +1,10 @@
-import { useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import { useSession } from "../providers/SessionProvider";
 import { Button, Card, CardBody, CardHeader } from "@heroui/react";
 import { FcGoogle } from "react-icons/fc";
 import ThemeSwitch from "../ThemeSwitch";
 
 export default function Login() {
-  const { refreshUser, loading } = useSession();
-
-  const login = useGoogleLogin({
-    flow: "auth-code",
-    scope: "https://www.googleapis.com/auth/gmail.readonly",
-    onSuccess: async ({ code }) => {
-      await axios.post("/api/google-login", { code }, { withCredentials: true });
-      refreshUser();
-    },
-  });
+  const { login, loading } = useSession();
 
   return (
     <div className="m-auto">

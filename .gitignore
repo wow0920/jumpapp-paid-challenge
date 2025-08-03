@@ -27,3 +27,4 @@ dist-ssr
 .env.*
 
 **/generated
+dev.db

@@ -1,0 +1,197 @@
+import {
+  addToast,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Chip,
+  Divider,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Skeleton,
+  Textarea,
+} from "@heroui/react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Category } from "../../utils/types";
+import { MdAdd } from "react-icons/md";
+import { FaCheck, FaEdit, FaTimes, FaTrashAlt } from "react-icons/fa";
+import { useModal } from "../providers/ModalProvider";
+
+const EditCategory = ({ category, isOpen, onClose }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const onSubmit = async (obj) => {
+    setIsLoading(true);
+
+    try {
+      if (category) {
+        await axios.put(`/api/categories/${category.id}`, obj);
+        addToast({ title: "Success", color: "success", description: "Category was successfully updated." });
+      } else {
+        await axios.post("/api/categories", obj);
+        addToast({ title: "Success", color: "success", description: "Category was successfully created." });
+      }
+    } catch (e) {
+      console.error(e);
+      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while saving category." });
+    } finally {
+      setIsLoading(false);
+    }
+
+    onClose();
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!isOpen) {
+      return;
+    }
+
+    onSubmit(Object.fromEntries(new FormData(e.currentTarget)));
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalContent>
+        <form onSubmit={handleSubmit}>
+          <ModalHeader className="flex flex-col">
+            <p>{category ? "Edit" : "Add"} Category</p>
+          </ModalHeader>
+          <ModalBody>
+            <Input
+              isDisabled={isLoading}
+              isRequired
+              label="Name"
+              name="name"
+              placeholder="e.g., Work, Personal, Shopping"
+              defaultValue={category?.name}
+            />
+            <Textarea
+              isDisabled={isLoading}
+              isRequired
+              label="Description"
+              name="description"
+              placeholder="Describe what emails should go in this category..."
+              defaultValue={category?.description}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button isDisabled={isLoading} type="button" color="default" startContent={<FaTimes />} onPress={onClose}>
+              Cancel
+            </Button>
+            <Button isDisabled={isLoading} type="submit" color="primary" startContent={<FaCheck />}>
+              Save
+            </Button>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+export default function Categories() {
+  const { showModal } = useModal();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editCategory, setEditCategory] = useState<Category>(null);
+  const [categories, setCategories] = useState<Category[]>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchCategories = async (forceRefresh = true) => {
+    if (forceRefresh) {
+      setIsLoading(true);
+    }
+    try {
+      const { data } = await axios.get(`/api/categories?seed=${Math.random()}`);
+      setCategories(data);
+    } catch (e) {
+      console.error(e);
+      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while fetching categories." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const handleDeleteCategory = (id) => {
+    showModal({
+      title: "Delete Category",
+      body: "Are you sure you want to delete this category? This action cannot be undone.",
+      ok: "Delete",
+      okColor: "danger",
+      onOK: async () => {
+        try {
+          await axios.delete(`/api/categories/${id}`);
+          addToast({ title: "Success", color: "success", description: "Category was successfully deleted." });
+        } catch (e) {
+          console.error(e);
+          addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while deleting category." });
+        } finally {
+          fetchCategories();
+        }
+      },
+    });
+  };
+
+  const handlEditCategory = (category) => {
+    setEditCategory(category);
+    setModalOpen(true);
+  };
+
+  const handleAddCategory = () => {
+    setEditCategory(null);
+    setModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (!modalOpen) fetchCategories(false);
+  }, [modalOpen]);
+
+  return (
+    <>
+      <div className="flex">
+        <Button startContent={<MdAdd />} onClick={handleAddCategory} color="primary">
+          New Category
+        </Button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {isLoading ? (
+          <>
+            {new Array(6).map((_, i) => (
+              <Skeleton key={i} />
+            ))}
+          </>
+        ) : (
+          <>
+            {(categories ?? []).map(({ id, name, description, emailCount }) => (
+              <Card key={id}>
+                <CardHeader className="justify-between px-5 font-bold">
+                  <div className="text-lg">{name}</div>
+                  {emailCount > 0 && <Chip size="sm">{emailCount}</Chip>}
+                  <div className="flex gap-1">
+                    <Button radius="full" variant="light" size="sm" isIconOnly onPress={() => handlEditCategory({ id, name, description })}>
+                      <FaEdit className="text-medium" />
+                    </Button>
+                    <Button radius="full" variant="light" size="sm" isIconOnly onPress={() => handleDeleteCategory(id)}>
+                      <FaTrashAlt className="text-medium" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <Divider />
+                <CardBody className="text-sm p-5 opacity-70">{description}</CardBody>
+              </Card>
+            ))}
+          </>
+        )}
+      </div>
+      <EditCategory isOpen={modalOpen} category={editCategory} onClose={() => setModalOpen(false)} />
+    </>
+  );
+}

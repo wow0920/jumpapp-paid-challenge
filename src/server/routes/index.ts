@@ -1,34 +1,22 @@
 import { Router } from "express";
-import { attachOAuth2Client, gmailList, googleLogin } from "../utils/googleAuth";
-import authMiddleware from "../utils/authMiddleware";
+import * as auth from "../controllers/auth";
+import * as category from "../controllers/category";
+import { attachUser, authMiddleware } from "../middlewares/auth";
 
 const router = Router();
 
-router.post("/google-login", googleLogin);
+router.use(attachUser);
 
-router.get("/me", authMiddleware, (req, res) => {
-  try {
-    res.json((req as any).user);
-  } catch {
-    res.sendStatus(403);
-  }
-});
+/// Auth
+router.post("/google-login", auth.googleLogin);
+router.get("/me", authMiddleware, auth.getMe);
+router.get("/logout", authMiddleware, auth.logout);
 
-router.get("/logout", (_req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-  });
-  res.clearCookie("refresh_token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-  });
-
-  res.status(200).json({ message: "Logged out" });
-});
-
-router.get("/gmail-list", attachOAuth2Client, gmailList);
+/// Categories
+router.get("/categories", authMiddleware, category.getCategories);
+router.get("/categories/:id", authMiddleware, category.getCategory);
+router.post("/categories", authMiddleware, category.createCategory);
+router.put("/categories/:id", authMiddleware, category.updateCategory);
+router.delete("/categories/:id", authMiddleware, category.deleteCategory);
 
 export default router;

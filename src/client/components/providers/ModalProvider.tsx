@@ -9,7 +9,10 @@ interface ModalOptions {
   isDismissable?: boolean;
   hideCloseButton?: boolean;
   isKeyboardDismissDisabled?: boolean;
+  hideFooter?: boolean;
   onOK?: () => void | Promise<void>;
+  okColor?: "danger" | "primary" | "secondary" | "success" | "warning" | "default";
+  cancelColor?: "danger" | "primary" | "secondary" | "success" | "warning" | "default";
 }
 
 interface ModalObject {
@@ -38,23 +41,26 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
             {(onClose) => (
               <>
                 {modalProps.title && <ModalHeader className="justify-center">{modalProps.title}</ModalHeader>}
-                {modalProps.body && <ModalBody>{modalProps.body}</ModalBody>}
-                <ModalFooter>
-                  <Button color="danger" variant="light" onPress={onClose}>
-                    {modalProps.cancel || "Cancel"}
-                  </Button>
-                  <Button
-                    color="primary"
-                    onPress={async () => {
-                      if (modalProps.onOK) {
-                        await modalProps.onOK();
-                      }
-                      onClose();
-                    }}
-                  >
-                    {modalProps.ok || "OK"}
-                  </Button>
-                </ModalFooter>
+                {modalProps.body && <ModalBody itemRef="">{modalProps.body}</ModalBody>}
+                {!modalProps.hideFooter && (
+                  <ModalFooter>
+                    <Button color={modalProps.cancelColor ?? "default"} type="button" variant="light" onPress={onClose}>
+                      {modalProps.cancel || "Cancel"}
+                    </Button>
+                    <Button
+                      color={modalProps.okColor ?? "primary"}
+                      type="submit"
+                      onPress={async () => {
+                        if (modalProps.onOK) {
+                          await modalProps.onOK();
+                        }
+                        onClose();
+                      }}
+                    >
+                      {modalProps.ok || "OK"}
+                    </Button>
+                  </ModalFooter>
+                )}
               </>
             )}
           </ModalContent>
