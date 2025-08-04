@@ -1,4 +1,4 @@
-// import { sendMessageToUser } from "..";
+import { sendMessageToUser } from "..";
 import { Email } from "../generated/prisma";
 import prisma from "../prisma";
 import { syncEmails as syncEmailsProc } from "../services/emailSync";
@@ -60,17 +60,23 @@ export async function getEmails(req: any, res: any) {
 // Also a webhook from Gmail Push
 export async function syncEmails(req: any, res: any) {
   try {
-    const userId = (req.user as any)?.id;
+    let userId = (req.user as any)?.id;
     if (!userId) {
       const msgData = req.body?.message?.data;
       if (!msgData) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-      const data = Buffer.from(msgData, "base64").toString();
-      console.log("==== received gmail push", data);
-      // sendMessageToUser(userId, "new_message");
-      res.json({ success: true, message: msgData });
-      return;
+      const data = Buffer.from(msgData, "base64").toString(); // Format: {"emailAddress":"frcarlton95@gmail.com","historyId":825399}
+      const { emailAddress } = JSON.parse(data);
+      const user = await prisma.user.findUnique({
+        where: { email: emailAddress },
+        select: { id: true },
+      });
+      if (!user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      userId = user.id;
+      sendMessageToUser(userId, "new_message");
     }
 
     // Start the sync process in the background
