@@ -3,6 +3,7 @@ import axios from "axios";
 import { User } from "../../utils/types";
 import { useGoogleLogin } from "@react-oauth/google";
 import { addToast } from "@heroui/react";
+import { io, Socket } from "socket.io-client";
 
 interface Session {
   isAuthenticated: boolean;
@@ -11,6 +12,7 @@ interface Session {
   refreshUser: () => void;
   login: () => void;
   logout: () => void;
+  socket: Socket;
 }
 
 const SessionContext = createContext<Session>({
@@ -20,11 +22,13 @@ const SessionContext = createContext<Session>({
   refreshUser: () => {},
   login: () => {},
   logout: () => {},
+  socket: null,
 });
 
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const [socket, _setSocket] = useState(io(window.location.origin, { autoConnect: false, withCredentials: true }));
 
   const refreshUser = () => {
     axios
@@ -54,7 +58,19 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    if (!user) {
+      socket.disconnect();
+      return;
+    }
+    socket.connect();
+  }, [user]);
+
+  useEffect(() => {
     refreshUser();
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (
@@ -66,6 +82,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         loading,
+        socket,
       }}
     >
       {children}

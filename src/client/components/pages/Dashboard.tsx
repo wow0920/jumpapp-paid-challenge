@@ -1,4 +1,5 @@
 import {
+  addToast,
   Avatar,
   Button,
   Dropdown,
@@ -34,6 +35,7 @@ export default function Dashboard() {
   };
 
   const handleSync = async () => {
+    addToast({ title: "Started synchronizing your UNREAD emails...", color: "default" });
     await axios.post("/api/gmail-sync");
   };
 

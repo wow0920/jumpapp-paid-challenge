@@ -1,3 +1,4 @@
+import { getSocketsByUserId } from "..";
 import { Email } from "../generated/prisma";
 import prisma from "../prisma";
 import { syncEmails as syncEmailsProc } from "../services/emailSync";
@@ -61,9 +62,16 @@ export async function syncEmails(req: any, res: any) {
     const userId = (req.user as any).id;
 
     // Start the sync process in the background
-    syncEmailsProc(userId).catch((error) => {
-      console.error("Error syncing emails:", error);
-    });
+    syncEmailsProc(userId)
+      .then(() => {
+        const socks = getSocketsByUserId(userId);
+        socks.forEach((socket) => {
+          socket.emit("sync_finished", {});
+        });
+      })
+      .catch((error) => {
+        console.error("Error syncing emails:", error);
+      });
 
     res.json({ success: true, message: "Email sync started" });
   } catch (error) {
@@ -130,28 +138,32 @@ export async function deleteEmail(req: any, res: any) {
 }
 
 // Process unsubscribe for a specific email
-export async function unsubscribeEmail(req: any, res: any) {
+export async function unsubscribeEmails(req: any, res: any) {
   try {
-    const { id } = req.params;
+    const { ids = [] } = req.body;
     const userId = (req.user as any).id;
 
     // Check if email exists and belongs to user
-    const email = await prisma.email.findFirst({
+    const emails = await prisma.email.findMany({
       where: {
-        id,
+        id: { in: ids },
         userId,
         hasUnsubscribeLink: true,
       },
     });
 
-    if (!email) {
+    if (!emails || !emails.length) {
       return res.status(404).json({ error: "Email not found or has no unsubscribe link" });
     }
 
     // Process unsubscribe in the background
-    processUnsubscribe(email.id).catch((error) => {
-      console.error(`Error processing unsubscribe for email ${email.id}:`, error);
-    });
+    await Promise.allSettled(
+      emails.map((email: Email) =>
+        processUnsubscribe(email.id).catch((error) => {
+          console.error(`Error processing unsubscribe for email ${email.id}:`, error);
+        })
+      )
+    );
 
     res.json({ success: true, message: "Unsubscribe process started" });
   } catch (error) {

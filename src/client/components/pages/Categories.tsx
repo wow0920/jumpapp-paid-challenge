@@ -24,6 +24,7 @@ import { FaCheck, FaEdit, FaTimes, FaTrashAlt } from "react-icons/fa";
 import { useModal } from "../providers/ModalProvider";
 import { IoSparkles } from "react-icons/io5";
 import Emails from "./Emails";
+import { useSession } from "../providers/SessionProvider";
 
 const EditCategory = ({ category, isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -137,6 +138,7 @@ const EditCategory = ({ category, isOpen, onClose }) => {
 };
 
 export default function Categories() {
+  const { socket } = useSession();
   const { showModal } = useModal();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -162,6 +164,14 @@ export default function Categories() {
 
   useEffect(() => {
     fetchCategories();
+    const socketHandler = async () => {
+      await fetchCategories(false);
+      addToast({ title: "Success", color: "success", description: "Emails were successfully synchronized." });
+    };
+    socket.on("sync_finished", socketHandler);
+    return () => {
+      socket.off("sync_finished", socketHandler);
+    };
   }, []);
 
   const handleDeleteCategory = (id) => {
