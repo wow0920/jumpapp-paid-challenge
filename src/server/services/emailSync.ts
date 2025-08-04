@@ -35,7 +35,9 @@ export async function getOAuth2Client(refresh_token: string) {
 
   try {
     await oauth2Client.getAccessToken(); // auto-refresh access_token
-  } catch (err) {}
+  } catch (err) {
+    console.error("Error refreshing access token:", err);
+  }
 
   return oauth2Client;
 }

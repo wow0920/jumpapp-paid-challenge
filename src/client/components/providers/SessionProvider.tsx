@@ -1,19 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
-import { User } from "../../utils/types";
+import { Session, User } from "../../utils/types";
 import { useGoogleLogin } from "@react-oauth/google";
 import { addToast } from "@heroui/react";
-import { io, Socket } from "socket.io-client";
-
-interface Session {
-  isAuthenticated: boolean;
-  currentUser: User | null;
-  loading: boolean;
-  refreshUser: () => void;
-  login: () => void;
-  logout: () => void;
-  socket: Socket;
-}
+import { io } from "socket.io-client";
 
 const SessionContext = createContext<Session>({
   isAuthenticated: false,

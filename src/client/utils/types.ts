@@ -1,3 +1,5 @@
+import { Socket } from "socket.io-client";
+
 export type Account = {
   id: string;
   email: string;
@@ -27,3 +29,13 @@ export type Email = {
   body: string;
   summary: string;
 };
+
+export interface Session {
+  isAuthenticated: boolean;
+  currentUser: User | null;
+  loading: boolean;
+  refreshUser: () => void;
+  login: () => void;
+  logout: () => void;
+  socket: Partial<Socket> | Socket;
+}
