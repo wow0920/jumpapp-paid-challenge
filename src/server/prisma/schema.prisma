@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:dev.db?mode=memory&cache=shared"
+  url      = "file:dev1.db?mode=memory&cache=shared"
 }
 
 model User {
