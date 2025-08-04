@@ -38,7 +38,8 @@ model Email {
   messageId          String
   threadId           String
   subject            String
-  sender             String
+  senderName         String
+  senderEmail        String
   receivedAt         DateTime
   body               String
   summary            String

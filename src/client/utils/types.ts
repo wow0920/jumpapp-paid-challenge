@@ -21,7 +21,8 @@ export type Category = {
 export type Email = {
   id: string;
   subject: string;
-  sender: string;
+  senderName: string;
+  senderEmail: string;
   receivedAt: string;
   body: string;
   summary: string;

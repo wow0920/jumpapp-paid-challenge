@@ -77,7 +77,8 @@ export async function getCategoryEmails(req: any, res: any) {
       select: {
         id: true,
         subject: true,
-        sender: true,
+        senderName: true,
+        senderEmail: true,
         createdAt: true,
         summary: true,
       },

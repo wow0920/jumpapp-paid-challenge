@@ -89,7 +89,7 @@ const EditCategory = ({ category, isOpen, onClose }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
+    <Modal isOpen={isOpen} onClose={handleClose} backdrop="blur" scrollBehavior="inside">
       <ModalContent>
         <form onSubmit={handleSubmit}>
           <ModalHeader className="flex flex-col">

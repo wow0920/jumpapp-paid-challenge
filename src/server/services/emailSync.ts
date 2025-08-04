@@ -115,7 +115,8 @@ async function processEmail(messageId: string, gmail: any, userId: string, categ
     const headers = payload.headers;
     const subject = headers.find((header: any) => header.name === "Subject")?.value || "(No Subject)";
     const from = headers.find((header: any) => header.name === "From")?.value || "";
-    const sender = extractSenderName(from);
+    const senderName = extractSenderName(from);
+    const senderEmail = extractSenderEmail(from);
 
     // Extract email body
     let body = "";
@@ -143,7 +144,8 @@ async function processEmail(messageId: string, gmail: any, userId: string, categ
         messageId: id,
         threadId,
         subject,
-        sender,
+        senderName,
+        senderEmail,
         receivedAt: new Date(Number.parseInt(internalDate)).toISOString(),
         body,
         summary: snippet || "",
@@ -228,6 +230,18 @@ function extractSenderName(from: string): string {
   const nameMatch = from.match(/^"?([^"<]+)"?\s*<.*>$/);
   if (nameMatch && nameMatch[1]) {
     return nameMatch[1].trim();
+  }
+
+  // If no name found, return the whole string
+  return from;
+}
+
+// Helper function to extract sender name from email
+function extractSenderEmail(from: string): string {
+  // Try to extract name from "Name <email>" format
+  const nameMatch = from.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (nameMatch && nameMatch[0]) {
+    return nameMatch[0].trim();
   }
 
   // If no name found, return the whole string

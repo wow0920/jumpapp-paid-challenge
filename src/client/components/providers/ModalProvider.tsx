@@ -1,16 +1,14 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalProps, useDisclosure } from "@heroui/react";
 
 interface ModalOptions {
   title?: ReactNode;
   body?: ReactNode;
   ok?: string;
   cancel?: string;
-  isDismissable?: boolean;
-  hideCloseButton?: boolean;
-  isKeyboardDismissDisabled?: boolean;
   hideFooter?: boolean;
   onOK?: () => void | Promise<void>;
+  props?: Partial<ModalProps>;
   okColor?: "danger" | "primary" | "secondary" | "success" | "warning" | "default";
   cancelColor?: "danger" | "primary" | "secondary" | "success" | "warning" | "default";
 }
@@ -36,7 +34,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     <ModalContext.Provider value={{ showModal }}>
       <>
         {children}
-        <Modal {...modalProps} backdrop="blur" title="asdf" isOpen={isOpen} onOpenChange={onOpenChange}>
+        <Modal {...modalProps.props} backdrop="blur" isOpen={isOpen} onOpenChange={onOpenChange} scrollBehavior="inside">
           <ModalContent>
             {(onClose) => (
               <>

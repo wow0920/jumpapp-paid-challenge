@@ -1,23 +1,105 @@
-import { addToast, Button, getKeyValue, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
+import {
+  Accordion,
+  AccordionItem,
+  addToast,
+  Button,
+  Selection,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+  Tooltip,
+} from "@heroui/react";
 import { Category, Email } from "../../utils/types";
 import { FaArrowLeft } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { TbMailOff, TbEye } from "react-icons/tb";
 import axios from "axios";
+import { useModal } from "../providers/ModalProvider";
 
 const dateRenderer = (val) => new Date(val).toDateString();
 const summaryRenderer = (val) => (val?.length > 80 ? val?.substring(0, 80) + "..." : val);
 
-const columns = [
-  { name: "sender", title: "Sender" },
-  { name: "subject", title: "Subject" },
-  { name: "summary", title: "Summary", renderer: summaryRenderer },
-  { name: "receivedAt", title: "Date", renderer: dateRenderer },
-  { name: "actions", title: "Actions" },
-];
-
 export default function ({ category, onBack }: { category: Category; onBack: any }) {
+  const { showModal } = useModal();
   const [emails, setEmails] = useState<Email[]>([]);
-  const [_isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
+  const iframeRef = useRef(null);
+
+  const selectedEmails = useMemo(() => (selectedKeys === "all" ? emails : emails.filter(({ id }) => selectedKeys.has(id))), [emails, selectedKeys]);
+
+  const handleViewEmail = ({ subject, summary, body }: Email) => {
+    showModal({
+      title: subject,
+      body: (
+        <Accordion selectionMode="multiple" defaultExpandedKeys={["body"]}>
+          <AccordionItem key="summary" title="Summary">
+            {summary}
+          </AccordionItem>
+          <AccordionItem key="body" title="Body">
+            <iframe
+              ref={iframeRef}
+              title="HTML Preview"
+              srcDoc={body}
+              sandbox=""
+              style={{
+                width: "100%",
+                height: "calc(100vh - 500px)",
+                border: "none",
+                overflow: "hidden",
+              }}
+            />
+          </AccordionItem>
+        </Accordion>
+      ),
+      props: {
+        size: "5xl",
+      },
+    });
+  };
+
+  const columns = useMemo(
+    () => [
+      {
+        name: "sender",
+        title: "Sender",
+        getValue: (email) => ({ name: email.senderName, email: email.senderEmail }),
+        renderer: ({ name, email }) => (
+          <div className="flex flex-col">
+            <p className="text-bold text-small capitalize">{name}</p>
+            <p className="text-bold text-tiny capitalize text-default-400">{email}</p>
+          </div>
+        ),
+      },
+      { name: "subject", title: "Subject" },
+      { name: "summary", title: "Summary", renderer: summaryRenderer },
+      { name: "receivedAt", title: "Date", renderer: dateRenderer },
+      {
+        name: "actions",
+        title: "Actions",
+        getValue: (email) => email,
+        renderer: (email) => (
+          <div className="flex flex-row">
+            <Tooltip content="Details">
+              <Button isIconOnly variant="light" size="sm" radius="md" onPress={() => handleViewEmail(email)}>
+                <TbEye className="text-lg" />
+              </Button>
+            </Tooltip>
+            <Tooltip content="Unsubscribe" color="danger">
+              <Button isIconOnly variant="light" size="sm" radius="md" color="danger">
+                <TbMailOff className="text-lg" />
+              </Button>
+            </Tooltip>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
 
   const fetchEmails = async (forceRefresh = true) => {
     if (forceRefresh) {
@@ -54,14 +136,36 @@ export default function ({ category, onBack }: { category: Category; onBack: any
         <h1>{category.name}</h1>
         <h2 className="opacity-75">{category.description}</h2>
       </div>
-      <Table isHeaderSticky>
-        <TableHeader columns={columns}>{(column) => <TableColumn key={column.name}>{column.title}</TableColumn>}</TableHeader>
-        <TableBody emptyContent="No emails found" items={emails}>
+      <Table
+        isHeaderSticky
+        selectionMode="multiple"
+        topContent={
+          <div className="flex justify-end">
+            <Button isDisabled={selectedEmails.length === 0} startContent={<TbMailOff className="text-lg" />} color="danger">
+              Unsubscribe
+            </Button>
+          </div>
+        }
+        selectedKeys={selectedKeys}
+        onSelectionChange={setSelectedKeys}
+        bottomContent={
+          selectedKeys === "all" || selectedKeys.size >= emails.length ? "All items selected" : `${selectedKeys.size} of ${emails.length} selected`
+        }
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn key={column.name} align={column.name === "actions" ? "end" : "start"}>
+              {column.title}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody emptyContent="No emails found" items={emails} loadingContent={<Spinner />} loadingState={isLoading ? "loading" : "idle"}>
           {(item: Email) => (
             <TableRow key={item.id}>
               {(columnKey) => {
                 const column = columns.find(({ name }) => name === columnKey);
-                return <TableCell>{column.renderer ? column.renderer(item[columnKey]) : getKeyValue(item, columnKey)}</TableCell>;
+                const value = column?.getValue ? column.getValue(item) : item[columnKey];
+                return <TableCell>{column.renderer ? column.renderer(value) : value}</TableCell>;
               }}
             </TableRow>
           )}
