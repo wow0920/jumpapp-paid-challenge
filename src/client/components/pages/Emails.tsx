@@ -21,8 +21,42 @@ import axios from "axios";
 import { useModal } from "../providers/ModalProvider";
 import { useSession } from "../providers/SessionProvider";
 
-const dateRenderer = (val) => new Date(val).toDateString();
-const summaryRenderer = (val) => (val?.length > 80 ? val?.substring(0, 80) + "..." : val);
+const dateRenderer = (dateInput) => {
+  function date2string() {
+    const now = new Date();
+    const date = new Date(dateInput);
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hr${hours !== 1 ? "s" : ""} ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} day${days !== 1 ? "s" : ""} ago`;
+
+    if (days < 14) return `a week ago`;
+
+    const optionsSameYear: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+    const optionsWithYear: Intl.DateTimeFormatOptions = { ...optionsSameYear, year: "numeric" };
+
+    const isSameYear = now.getFullYear() === date.getFullYear();
+    return date.toLocaleDateString("en-US", isSameYear ? optionsSameYear : optionsWithYear);
+  }
+
+  return <div className="whitespace-nowrap">{date2string()}</div>;
+};
+
+const summaryRenderer = (text) => {
+  const maxLength = 60;
+  if (text.length <= maxLength) return text;
+  const trimmed = text.slice(0, maxLength + 1);
+  const lastSpace = trimmed.lastIndexOf(" ");
+  return trimmed.slice(0, lastSpace) + "...";
+};
 
 export default function ({ category, onBack }: { category: Category; onBack: any }) {
   const { socket } = useSession();
@@ -38,12 +72,17 @@ export default function ({ category, onBack }: { category: Category; onBack: any
       addToast({ title: "Error", color: "danger", description: "Please select at least one email to unsubscribe." });
       return;
     }
-    axios.delete(`/api/emails`, {
-      data: {
-        ids: emailId ? [emailId] : selectedEmails.map(({ id }) => id),
-      },
-    });
-    addToast({ title: "Success", color: "success", description: "Started unsubscribing..." });
+    try {
+      await axios.delete(`/api/emails`, {
+        data: {
+          ids: emailId ? [emailId] : selectedEmails.map(({ id }) => id),
+        },
+      });
+      addToast({ title: "Success", color: "success", description: "Started unsubscribing..." });
+    } catch (e) {
+      console.error(e);
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while unsubscribing." });
+    }
   };
 
   useEffect(() => {
@@ -123,7 +162,7 @@ export default function ({ category, onBack }: { category: Category; onBack: any
       setEmails(data);
     } catch (e) {
       console.error(e);
-      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while fetching emails." });
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while fetching emails." });
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +192,12 @@ export default function ({ category, onBack }: { category: Category; onBack: any
         isHeaderSticky
         selectionMode="multiple"
         topContent={
-          <div className="flex justify-end">
+          <div className="flex justify-end items-center gap-4">
+            <div>
+              {selectedKeys === "all" || selectedKeys.size >= emails.length
+                ? "All items selected"
+                : `${selectedKeys.size} of ${emails.length} selected`}
+            </div>
             <Button
               isDisabled={selectedEmails.length === 0}
               startContent={<TbMailOff className="text-lg" />}
@@ -166,9 +210,6 @@ export default function ({ category, onBack }: { category: Category; onBack: any
         }
         selectedKeys={selectedKeys}
         onSelectionChange={setSelectedKeys}
-        bottomContent={
-          selectedKeys === "all" || selectedKeys.size >= emails.length ? "All items selected" : `${selectedKeys.size} of ${emails.length} selected`
-        }
       >
         <TableHeader columns={columns}>
           {(column) => (

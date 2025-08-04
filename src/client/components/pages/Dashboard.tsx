@@ -40,13 +40,13 @@ export default function Dashboard() {
       addToast({ title: "Started synchronizing your UNREAD emails...", color: "default" });
     } catch (e) {
       console.error(e);
-      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while syncing emails." });
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while syncing emails." });
     }
   };
 
   return (
     <>
-      <Navbar isBordered>
+      <Navbar isBordered maxWidth="xl">
         <NavbarBrand>
           <p className="font-bold text-inherit">AI Email Sorter</p>
         </NavbarBrand>
@@ -95,7 +95,7 @@ export default function Dashboard() {
           <ThemeSwitch />
         </NavbarContent>
       </Navbar>
-      <div className="max-w-[1024px] m-auto flex flex-col flex-1 w-full p-6 gap-4">
+      <div className="max-w-[1280px] m-auto flex flex-col flex-1 w-full p-6 gap-4 pb-20">
         <Categories />
       </div>
     </>

@@ -3,7 +3,8 @@ import { Request, Response } from "express";
 import { google } from "googleapis";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma";
-import { getOAuth2Client } from "../services/emailSync";
+import { getOAuth2Client, syncEmails } from "../services/emailSync";
+import { getSocketsByUserId } from "..";
 
 export const getAccounts = async (userId: string, withRefreshToken: boolean = false) => {
   return await prisma.gmailAccount.findMany({
@@ -44,6 +45,7 @@ export const googleLogin = async (req: Request, res: Response) => {
 
   if (!profile.email) return res.sendStatus(401);
 
+  /// Register the user if not exists
   let user = (req as any).user;
   if (user) {
     delete user.exp;
@@ -57,6 +59,7 @@ export const googleLogin = async (req: Request, res: Response) => {
       },
     });
   }
+  /// Register(link) the gmail account to the user
   await prisma.gmailAccount.upsert({
     where: { email: profile.email },
     update: {
@@ -75,6 +78,31 @@ export const googleLogin = async (req: Request, res: Response) => {
       userId: user.id,
     },
   });
+
+  syncEmails(user.id)
+    .then(() => {
+      const socks = getSocketsByUserId(user.id);
+      socks.forEach((socket) => {
+        socket.emit("sync_finished", {});
+      });
+    })
+    .catch((error) => {
+      console.error("Error syncing emails:", error);
+    });
+
+  /// Watch the gmail list
+  try {
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+    gmail.users.watch({
+      userId: "me",
+      requestBody: {
+        topicName: process.env.GOOGLE_CLOUD_PROJECT_ID,
+        labelIds: ["INBOX"],
+      },
+    });
+  } catch (e) {
+    console.error("Error when watching gmail list", e);
+  }
 
   const accounts = await getAccounts(user.id);
   const token = jwt.sign({ ...user, accounts }, process.env.JWT_SECRET!, { expiresIn: "1d" });

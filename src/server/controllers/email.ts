@@ -57,9 +57,18 @@ export async function getEmails(req: any, res: any) {
 }
 
 // Sync emails from Gmail
+// Also a webhook from Gmail Push
 export async function syncEmails(req: any, res: any) {
   try {
-    const userId = (req.user as any).id;
+    const userId = (req.user as any)?.id;
+    if (!userId) {
+      const message = req.body?.message;
+      if (!message) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      console.log("=== received gmail push", message);
+    }
 
     // Start the sync process in the background
     syncEmailsProc(userId)
@@ -159,7 +168,7 @@ export async function bulkUnsubscribe(req: any, res: any) {
     });
 
     if (emails.length === 0) {
-      return res.status(404).json({ error: "No valid emails found for unsubscribe" });
+      return res.status(404).json({ error: "Unsubscribe link not found" });
     }
 
     // Process unsubscribe for each email in the background

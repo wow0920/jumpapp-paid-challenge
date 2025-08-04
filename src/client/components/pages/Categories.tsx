@@ -45,7 +45,7 @@ const EditCategory = ({ category, isOpen, onClose }) => {
       setDescription(description);
     } catch (e) {
       console.error(e);
-      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while generating category." });
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while generating category." });
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +72,7 @@ const EditCategory = ({ category, isOpen, onClose }) => {
       }
     } catch (e) {
       console.error(e);
-      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while saving category." });
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while saving category." });
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +156,7 @@ export default function Categories() {
       setCategories(data);
     } catch (e) {
       console.error(e);
-      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while fetching categories." });
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while fetching categories." });
     } finally {
       setIsLoading(false);
     }
@@ -187,7 +187,11 @@ export default function Categories() {
           addToast({ title: "Success", color: "success", description: "Category was successfully deleted." });
         } catch (e) {
           console.error(e);
-          addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while deleting category." });
+          addToast({
+            title: "Error",
+            color: "danger",
+            description: e.response?.data?.error ?? e.message ?? "Error occured while deleting category.",
+          });
         } finally {
           fetchCategories();
         }
