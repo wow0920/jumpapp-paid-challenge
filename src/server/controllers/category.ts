@@ -20,6 +20,7 @@ export async function getCategories(req: any, res: any) {
             categoryId: category.id,
             userId,
           },
+          orderBy: { receivedAt: "desc" },
         });
 
         return {
@@ -28,6 +29,8 @@ export async function getCategories(req: any, res: any) {
         };
       })
     );
+
+    categoriesWithCount.sort((a, b) => b.emailCount - a.emailCount);
 
     res.json(categoriesWithCount);
   } catch (error) {

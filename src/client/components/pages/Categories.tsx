@@ -164,6 +164,7 @@ export default function Categories() {
 
   useEffect(() => {
     fetchCategories();
+
     const socketHandler = async () => {
       await fetchCategories(false);
       addToast({ title: "Success", color: "success", description: "Emails were successfully synchronized." });

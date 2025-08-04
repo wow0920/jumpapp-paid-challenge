@@ -24,7 +24,7 @@ router.post("/categories-ai", authMiddleware, category.generateCategoryAI);
 
 /// Gmail sync
 router.get("/emails/:cid", authMiddleware, email.getEmails);
-router.delete("/emails", authMiddleware, email.unsubscribeEmails);
+router.delete("/emails", authMiddleware, email.bulkUnsubscribe);
 // router.get("/gmail-push", email.onGmailPush);
 router.post("/gmail-sync", authMiddleware, email.syncEmails);
 

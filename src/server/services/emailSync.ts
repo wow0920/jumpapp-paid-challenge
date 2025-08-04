@@ -163,14 +163,12 @@ async function processEmail(messageId: string, gmail: any, userId: string, categ
       console.error(`Error processing email ${email.id} with AI:`, error);
     });
 
-    /*
     // Archive the email in Gmail
     await gmail.users.messages.modify({
       userId: "me",
       id: messageId,
       requestBody: {
         removeLabelIds: ["INBOX", "UNREAD"],
-        addLabelIds: ["ARCHIVE"],
       },
     });
 
@@ -179,7 +177,6 @@ async function processEmail(messageId: string, gmail: any, userId: string, categ
       where: { id: email.id },
       data: { archived: true },
     });
-    */
 
     console.log(`Processed and archived email ${id} from ${accountEmail}`);
   } catch (error) {

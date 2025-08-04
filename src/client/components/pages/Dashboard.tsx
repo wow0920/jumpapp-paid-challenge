@@ -35,8 +35,13 @@ export default function Dashboard() {
   };
 
   const handleSync = async () => {
-    addToast({ title: "Started synchronizing your UNREAD emails...", color: "default" });
-    await axios.post("/api/gmail-sync");
+    try {
+      await axios.post("/api/gmail-sync");
+      addToast({ title: "Started synchronizing your UNREAD emails...", color: "default" });
+    } catch (e) {
+      console.error(e);
+      addToast({ title: "Error", color: "danger", description: e.message ?? "Error occured while syncing emails." });
+    }
   };
 
   return (

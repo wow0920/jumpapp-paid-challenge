@@ -36,7 +36,7 @@ export const attachOAuth2Client = async (req: Request, res: Response, next: Next
   oauth2Client.setCredentials({ refresh_token: refreshToken });
 
   try {
-    await oauth2Client.getAccessToken(); // auto-refresh access_token
+    await oauth2Client.getAccessToken();
     (req as any).oauth2Client = oauth2Client;
     next();
   } catch (err) {

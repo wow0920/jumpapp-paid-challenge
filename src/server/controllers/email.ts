@@ -137,45 +137,10 @@ export async function deleteEmail(req: any, res: any) {
   }
 }
 
-// Process unsubscribe for a specific email
-export async function unsubscribeEmails(req: any, res: any) {
-  try {
-    const { ids = [] } = req.body;
-    const userId = (req.user as any).id;
-
-    // Check if email exists and belongs to user
-    const emails = await prisma.email.findMany({
-      where: {
-        id: { in: ids },
-        userId,
-        hasUnsubscribeLink: true,
-      },
-    });
-
-    if (!emails || !emails.length) {
-      return res.status(404).json({ error: "Email not found or has no unsubscribe link" });
-    }
-
-    // Process unsubscribe in the background
-    await Promise.allSettled(
-      emails.map((email: Email) =>
-        processUnsubscribe(email.id).catch((error) => {
-          console.error(`Error processing unsubscribe for email ${email.id}:`, error);
-        })
-      )
-    );
-
-    res.json({ success: true, message: "Unsubscribe process started" });
-  } catch (error) {
-    console.error("Error processing unsubscribe:", error);
-    res.status(500).json({ error: "Failed to process unsubscribe" });
-  }
-}
-
 // Process bulk unsubscribe
 export async function bulkUnsubscribe(req: any, res: any) {
   try {
-    const { emailIds } = req.body;
+    const { ids: emailIds } = req.body;
     const userId = (req.user as any).id;
 
     if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {
@@ -199,7 +164,7 @@ export async function bulkUnsubscribe(req: any, res: any) {
 
     // Process unsubscribe for each email in the background
     emails.forEach((email: Email) => {
-      processUnsubscribe(email.id).catch((error) => {
+      processUnsubscribe(email).catch((error) => {
         console.error(`Error processing unsubscribe for email ${email.id}:`, error);
       });
     });

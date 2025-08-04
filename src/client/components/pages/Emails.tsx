@@ -15,22 +15,46 @@ import {
 } from "@heroui/react";
 import { Category, Email } from "../../utils/types";
 import { FaArrowLeft } from "react-icons/fa";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TbMailOff, TbEye } from "react-icons/tb";
 import axios from "axios";
 import { useModal } from "../providers/ModalProvider";
+import { useSession } from "../providers/SessionProvider";
 
 const dateRenderer = (val) => new Date(val).toDateString();
 const summaryRenderer = (val) => (val?.length > 80 ? val?.substring(0, 80) + "..." : val);
 
 export default function ({ category, onBack }: { category: Category; onBack: any }) {
+  const { socket } = useSession();
   const { showModal } = useModal();
   const [emails, setEmails] = useState<Email[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
-  const iframeRef = useRef(null);
 
   const selectedEmails = useMemo(() => (selectedKeys === "all" ? emails : emails.filter(({ id }) => selectedKeys.has(id))), [emails, selectedKeys]);
+
+  const handleUnsubscribe = async (emailId = null) => {
+    if (!emailId && selectedEmails.length <= 0) {
+      addToast({ title: "Error", color: "danger", description: "Please select at least one email to unsubscribe." });
+      return;
+    }
+    axios.delete(`/api/emails`, {
+      data: {
+        ids: emailId ? [emailId] : selectedEmails.map(({ id }) => id),
+      },
+    });
+    addToast({ title: "Success", color: "success", description: "Started unsubscribing..." });
+  };
+
+  useEffect(() => {
+    const socketHandler = async () => {
+      addToast({ title: "Success", color: "success", description: "Unsubscribe was successfully synchronized." });
+    };
+    socket.on("unsubscribe_finished", socketHandler);
+    return () => {
+      socket.off("unsubscribe_finished", socketHandler);
+    };
+  }, []);
 
   const handleViewEmail = ({ subject, summary, body }: Email) => {
     showModal({
@@ -41,18 +65,7 @@ export default function ({ category, onBack }: { category: Category; onBack: any
             {summary}
           </AccordionItem>
           <AccordionItem key="body" title="Body">
-            <iframe
-              ref={iframeRef}
-              title="HTML Preview"
-              srcDoc={body}
-              sandbox=""
-              style={{
-                width: "100%",
-                height: "calc(100vh - 500px)",
-                border: "none",
-                overflow: "hidden",
-              }}
-            />
+            <div dangerouslySetInnerHTML={{ __html: body.replace(/<a\b([^>]*?)>/gi, '<a$1 target="_blank" rel="noopener noreferrer">') }}></div>
           </AccordionItem>
         </Accordion>
       ),
@@ -90,7 +103,7 @@ export default function ({ category, onBack }: { category: Category; onBack: any
               </Button>
             </Tooltip>
             <Tooltip content="Unsubscribe" color="danger">
-              <Button isIconOnly variant="light" size="sm" radius="md" color="danger">
+              <Button isIconOnly variant="light" size="sm" radius="md" color="danger" onPress={() => handleUnsubscribe(email.id)}>
                 <TbMailOff className="text-lg" />
               </Button>
             </Tooltip>
@@ -141,7 +154,12 @@ export default function ({ category, onBack }: { category: Category; onBack: any
         selectionMode="multiple"
         topContent={
           <div className="flex justify-end">
-            <Button isDisabled={selectedEmails.length === 0} startContent={<TbMailOff className="text-lg" />} color="danger">
+            <Button
+              isDisabled={selectedEmails.length === 0}
+              startContent={<TbMailOff className="text-lg" />}
+              color="danger"
+              onPress={() => handleUnsubscribe()}
+            >
               Unsubscribe
             </Button>
           </div>

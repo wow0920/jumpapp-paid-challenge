@@ -1,29 +1,19 @@
 import puppeteer from "puppeteer";
-import prisma from "../prisma";
 import { extractUnsubscribeLink } from "./aiService";
+import { Email } from "../generated/prisma";
 
 // Function to process unsubscribe for an email
-export async function processUnsubscribe(emailId: string): Promise<void> {
+export async function processUnsubscribe(email: Email): Promise<void> {
   try {
-    // Get email from database
-    const email = await prisma.email.findUnique({
-      where: { id: emailId },
-    });
-
-    if (!email) {
-      console.log(`Email ${emailId} not found`);
-      return;
-    }
-
     // Extract unsubscribe link
     const unsubscribeLink = extractUnsubscribeLink(email.body);
 
     if (!unsubscribeLink) {
-      console.log(`No unsubscribe link found in email ${emailId}`);
+      console.log(`No unsubscribe link found in email ${email.id}`);
       return;
     }
 
-    console.log(`Processing unsubscribe for email ${emailId} with link: ${unsubscribeLink}`);
+    console.log(`Processing unsubscribe for email ${email.id} with link: ${unsubscribeLink}`);
 
     // Launch browser
     const browser = await puppeteer.launch({
@@ -38,7 +28,7 @@ export async function processUnsubscribe(emailId: string): Promise<void> {
       await page.goto(unsubscribeLink, { waitUntil: "networkidle2", timeout: 30000 });
 
       // Wait for page to load
-      await new Promise((resolve) => setTimeout(resolve, 3000)); // 3 seconds
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Look for common unsubscribe elements
       const unsubscribeSelectors = [
@@ -107,6 +97,7 @@ export async function processUnsubscribe(emailId: string): Promise<void> {
 
             // Wait for navigation or timeout
             await page.waitForNavigation({ waitUntil: "networkidle2" });
+            await new Promise((resolve) => setTimeout(resolve, 3000));
 
             console.log(`Clicked unsubscribe element with selector: ${selector}`);
             break;
@@ -118,14 +109,14 @@ export async function processUnsubscribe(emailId: string): Promise<void> {
       }
 
       // Take a screenshot for debugging
-      await page.screenshot({ path: `unsubscribe-${emailId}.png` });
+      // await page.screenshot({ path: `unsubscribe-${email.id}.png` });
 
-      console.log(`Unsubscribe process completed for email ${emailId}`);
+      console.log(`Unsubscribe process completed for email ${email.id}`);
     } finally {
       await browser.close();
     }
   } catch (error) {
-    console.error(`Error processing unsubscribe for email ${emailId}:`, error);
+    console.error(`Error processing unsubscribe for email ${email.id}:`, error);
     throw error;
   }
 }
