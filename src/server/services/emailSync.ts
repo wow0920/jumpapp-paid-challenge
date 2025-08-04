@@ -2,6 +2,7 @@ import "dotenv/config";
 import { google } from "googleapis";
 import prisma from "../prisma";
 import { categorizeEmail, summarizeEmail, extractUnsubscribeLink } from "./aiService";
+import { sendMessageToUser } from "..";
 
 // Function to sync emails from Gmail
 export async function syncEmails(userId: string): Promise<void> {
@@ -23,6 +24,8 @@ export async function syncEmails(userId: string): Promise<void> {
   } catch (error) {
     console.error(`Error syncing emails for user ${userId}:`, error);
     throw error;
+  } finally {
+    sendMessageToUser(userId, "sync_finished");
   }
 }
 

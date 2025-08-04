@@ -22,9 +22,10 @@ import { IoMdPersonAdd } from "react-icons/io";
 import { FiRefreshCw } from "react-icons/fi";
 import Categories from "./Categories";
 import axios from "axios";
+import { useEffect } from "react";
 
 export default function Dashboard() {
-  const { login, logout, currentUser } = useSession();
+  const { login, logout, currentUser, socket } = useSession();
   const { showModal } = useModal();
 
   const handleLogout = () => {
@@ -43,6 +44,16 @@ export default function Dashboard() {
       addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while syncing emails." });
     }
   };
+
+  useEffect(() => {
+    const socketHandler = async () => {
+      addToast({ title: "A new email", description: "A new email was received!" });
+    };
+    socket.on("new_message", socketHandler);
+    return () => {
+      socket.off("new_message", socketHandler);
+    };
+  }, []);
 
   return (
     <>

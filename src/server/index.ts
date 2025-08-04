@@ -39,8 +39,13 @@ export const io = new SocketIOServer(httpServer, {
   maxHttpBufferSize: 1e8,
 });
 
-export function getSocketsByUserId(userId: string) {
+function getSocketsByUserId(userId: string) {
   return Array.from(io.sockets.sockets.values()).filter((s: CustomSocket) => s.user?.id === userId);
+}
+export function sendMessageToUser(userId: string, message: string, payload: any = {}) {
+  getSocketsByUserId(userId).forEach((socket) => {
+    socket.emit(message, payload);
+  });
 }
 
 io.use(async (socket: CustomSocket, next) => {

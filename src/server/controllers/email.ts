@@ -1,4 +1,4 @@
-import { getSocketsByUserId } from "..";
+// import { sendMessageToUser } from "..";
 import { Email } from "../generated/prisma";
 import prisma from "../prisma";
 import { syncEmails as syncEmailsProc } from "../services/emailSync";
@@ -62,25 +62,21 @@ export async function syncEmails(req: any, res: any) {
   try {
     const userId = (req.user as any)?.id;
     if (!userId) {
-      const message = req.body?.message;
-      if (!message) {
+      const msgData = req.body?.message?.data;
+      if (!msgData) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-
-      console.log("=== received gmail push", message);
+      const data = Buffer.from(msgData, "base64").toString();
+      console.log("==== received gmail push", data);
+      // sendMessageToUser(userId, "new_message");
+      res.json({ success: true, message: msgData });
+      return;
     }
 
     // Start the sync process in the background
-    syncEmailsProc(userId)
-      .then(() => {
-        const socks = getSocketsByUserId(userId);
-        socks.forEach((socket) => {
-          socket.emit("sync_finished", {});
-        });
-      })
-      .catch((error) => {
-        console.error("Error syncing emails:", error);
-      });
+    syncEmailsProc(userId).catch((error) => {
+      console.error("Error syncing emails:", error);
+    });
 
     res.json({ success: true, message: "Email sync started" });
   } catch (error) {

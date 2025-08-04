@@ -27,4 +27,7 @@ router.get("/emails/:cid", authMiddleware, email.getEmails);
 router.delete("/emails", authMiddleware, email.bulkUnsubscribe);
 router.post("/gmail-sync", authMiddleware, email.syncEmails);
 
+/// Gmail push webhook
+router.post("/gmail-push", email.syncEmails);
+
 export default router;

@@ -4,7 +4,6 @@ import { google } from "googleapis";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma";
 import { getOAuth2Client, syncEmails } from "../services/emailSync";
-import { getSocketsByUserId } from "..";
 
 export const getAccounts = async (userId: string, withRefreshToken: boolean = false) => {
   return await prisma.gmailAccount.findMany({
@@ -79,21 +78,14 @@ export const googleLogin = async (req: Request, res: Response) => {
     },
   });
 
-  syncEmails(user.id)
-    .then(() => {
-      const socks = getSocketsByUserId(user.id);
-      socks.forEach((socket) => {
-        socket.emit("sync_finished", {});
-      });
-    })
-    .catch((error) => {
-      console.error("Error syncing emails:", error);
-    });
+  syncEmails(user.id).catch((error) => {
+    console.error("Error syncing emails:", error);
+  });
 
   /// Watch the gmail list
   try {
     const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-    gmail.users.watch({
+    await gmail.users.watch({
       userId: "me",
       requestBody: {
         topicName: process.env.GOOGLE_CLOUD_PROJECT_ID,
