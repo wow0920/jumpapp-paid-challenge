@@ -140,7 +140,18 @@ export const gmailList = async (req: Request, res: Response) => {
   res.json(messages);
 };
 
-export const logout = async (_req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const accounts = await getAccounts((req as any).user.id, true);
+    for (const account of accounts) {
+      const oauth2Client = await getOAuth2Client(account.refreshToken);
+      const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+      await gmail.users.stop({ userId: "me" });
+    }
+  } catch (e) {
+    console.error("Error when watching gmail list", e);
+  }
+
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
