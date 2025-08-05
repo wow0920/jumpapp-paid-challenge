@@ -175,7 +175,7 @@ export async function bulkUnsubscribe(req: any, res: any) {
 
     // Process unsubscribe for each email in the background
     emails.forEach((email: Email) => {
-      processUnsubscribe(email).catch((error) => {
+      processUnsubscribe((req.user as any).email, email).catch((error) => {
         console.error(`Error processing unsubscribe for email ${email.id}:`, error);
       });
     });

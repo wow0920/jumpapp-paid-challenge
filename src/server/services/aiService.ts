@@ -3,7 +3,7 @@ import { OpenAI } from "openai";
 import { JSDOM } from "jsdom";
 
 // Initialize OpenAI client
-const openai = new OpenAI({
+export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
@@ -188,4 +188,37 @@ Respond only in this pure JSON format without any other characters:
   });
 
   return extractJSON(completion.choices[0].message.content ?? "");
+}
+
+export async function askAIForUnsubscribeAction(email: string, html: string, url: string): Promise<string> {
+  const prompt = `
+You are an AI agent controlling a browser to unsubscribe from an email.
+You are given the current page's HTML and URL.
+Decide the next actions to perform. The user should input, select, or click on the page to unsubscribe.
+
+Please provide me the javascript code to run inside the browser page. The code will include the very last step of clicking the button if any.
+So after running the code, it will automatically unsubscribe the user from the email.
+Respond only javascript codes without any other characters.
+
+The user's email is ${email}.
+HTML and URL:
+URL: ${url}
+HTML: ${html}
+`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4.1-mini",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0,
+  });
+
+  try {
+    const text = (response.choices[0].message?.content ?? "").replaceAll("javascript```", "").replaceAll("```", "");
+    if (text.startsWith("javascript")) {
+      return text.substring(10);
+    }
+    return text;
+  } catch {
+    return "";
+  }
 }

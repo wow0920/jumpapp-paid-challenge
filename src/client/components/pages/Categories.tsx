@@ -267,7 +267,7 @@ export default function Categories() {
         </>
       ) : (
         <>
-          <Emails category={selectedCategory} onBack={() => setSelectedCategoryId(null)} />
+          <Emails category={selectedCategory} onBack={() => setSelectedCategoryId(null)} onRefresh={fetchCategories} />
         </>
       )}
 

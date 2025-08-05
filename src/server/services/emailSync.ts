@@ -25,7 +25,7 @@ export async function syncEmails(userId: string): Promise<void> {
     console.error(`Error syncing emails for user ${userId}:`, error);
     throw error;
   } finally {
-    sendMessageToUser(userId, "sync_finished");
+    setTimeout(() => sendMessageToUser(userId, "sync_finished"), 200);
   }
 }
 

@@ -58,7 +58,7 @@ const summaryRenderer = (text) => {
   return trimmed.slice(0, lastSpace) + "...";
 };
 
-export default function ({ category, onBack }: { category: Category; onBack: any }) {
+export default function ({ category, onBack, onRefresh }: { category: Category; onBack: any; onRefresh: any }) {
   const { socket } = useSession();
   const { showModal } = useModal();
   const [emails, setEmails] = useState<Email[]>([]);
@@ -93,7 +93,8 @@ export default function ({ category, onBack }: { category: Category; onBack: any
           ids: emailId ? [emailId] : selectedEmails.map(({ id }) => id),
         },
       });
-      await fetchEmails();
+      onRefresh();
+      fetchEmails();
       addToast({ title: "Success", color: "success", description: "Deleted the emails successfully." });
     } catch (e) {
       console.error(e);
