@@ -16,7 +16,7 @@ import {
   Textarea,
   Tooltip,
 } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Category } from "../../utils/types";
 import { MdAdd } from "react-icons/md";
@@ -143,9 +143,14 @@ export default function Categories() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<Category>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Category>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const selectedCategory = useMemo<Category>(
+    () => (selectedCategoryId ? categories.find(({ id }) => id === selectedCategoryId) : null),
+    [categories, selectedCategoryId]
+  );
 
   const fetchCategories = async (forceRefresh = true) => {
     if (forceRefresh) {
@@ -217,7 +222,7 @@ export default function Categories() {
 
   return (
     <>
-      {!selectedCategory ? (
+      {!selectedCategoryId ? (
         <>
           <div className="flex justify-between">
             <h1>Email Categories</h1>
@@ -238,11 +243,7 @@ export default function Categories() {
                   <Card key={id}>
                     <CardHeader className="justify-between font-bold ">
                       <Tooltip content={`Emails: ${emailCount}`}>
-                        <Button
-                          className="text-lg flex items-center gap-3"
-                          variant="light"
-                          onPress={() => setSelectedCategory({ id, name, description })}
-                        >
+                        <Button className="text-lg flex items-center gap-3" variant="light" onPress={() => setSelectedCategoryId(id)}>
                           <span>{name}</span>
                           {emailCount > 0 && <Chip size="sm">{emailCount}</Chip>}
                         </Button>
@@ -266,7 +267,7 @@ export default function Categories() {
         </>
       ) : (
         <>
-          <Emails category={selectedCategory} onBack={() => setSelectedCategory(null)} />
+          <Emails category={selectedCategory} onBack={() => setSelectedCategoryId(null)} />
         </>
       )}
 

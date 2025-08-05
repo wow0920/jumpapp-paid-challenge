@@ -94,7 +94,7 @@ export async function syncEmails(req: any, res: any) {
 // Delete emails
 export async function deleteEmails(req: any, res: any) {
   try {
-    const { emailIds } = req.body;
+    const { ids: emailIds } = req.body;
     const userId = (req.user as any).id;
 
     if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {

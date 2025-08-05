@@ -16,7 +16,7 @@ import {
 import { Category, Email } from "../../utils/types";
 import { FaArrowLeft } from "react-icons/fa";
 import { useEffect, useMemo, useState } from "react";
-import { TbMailOff, TbEye } from "react-icons/tb";
+import { TbMailOff, TbEye, TbTrash } from "react-icons/tb";
 import axios from "axios";
 import { useModal } from "../providers/ModalProvider";
 import { useSession } from "../providers/SessionProvider";
@@ -66,6 +66,40 @@ export default function ({ category, onBack }: { category: Category; onBack: any
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
 
   const selectedEmails = useMemo(() => (selectedKeys === "all" ? emails : emails.filter(({ id }) => selectedKeys.has(id))), [emails, selectedKeys]);
+
+  const fetchEmails = async (forceRefresh = true) => {
+    if (forceRefresh) {
+      setIsLoading(true);
+    }
+    try {
+      const { data } = await axios.get(`/api/emails/${category.id}?seed=${Math.random()}`);
+      setEmails(data);
+    } catch (e) {
+      console.error(e);
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while fetching emails." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (emailId = null) => {
+    if (!emailId && selectedEmails.length <= 0) {
+      addToast({ title: "Error", color: "danger", description: "Please select at least one email to delete." });
+      return;
+    }
+    try {
+      await axios.delete(`/api/emails-db`, {
+        data: {
+          ids: emailId ? [emailId] : selectedEmails.map(({ id }) => id),
+        },
+      });
+      await fetchEmails();
+      addToast({ title: "Success", color: "success", description: "Deleted the emails successfully." });
+    } catch (e) {
+      console.error(e);
+      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while deleting." });
+    }
+  };
 
   const handleUnsubscribe = async (emailId = null) => {
     if (!emailId && selectedEmails.length <= 0) {
@@ -141,6 +175,11 @@ export default function ({ category, onBack }: { category: Category; onBack: any
                 <TbEye className="text-lg" />
               </Button>
             </Tooltip>
+            <Tooltip content="Delete" color="danger">
+              <Button isIconOnly variant="light" size="sm" radius="md" color="danger" onPress={() => handleDelete(email.id)}>
+                <TbTrash className="text-lg" />
+              </Button>
+            </Tooltip>
             <Tooltip content="Unsubscribe" color="danger">
               <Button isIconOnly variant="light" size="sm" radius="md" color="danger" onPress={() => handleUnsubscribe(email.id)}>
                 <TbMailOff className="text-lg" />
@@ -152,21 +191,6 @@ export default function ({ category, onBack }: { category: Category; onBack: any
     ],
     []
   );
-
-  const fetchEmails = async (forceRefresh = true) => {
-    if (forceRefresh) {
-      setIsLoading(true);
-    }
-    try {
-      const { data } = await axios.get(`/api/emails/${category.id}?seed=${Math.random()}`);
-      setEmails(data);
-    } catch (e) {
-      console.error(e);
-      addToast({ title: "Error", color: "danger", description: e.response?.data?.error ?? e.message ?? "Error occured while fetching emails." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     fetchEmails();
@@ -198,6 +222,14 @@ export default function ({ category, onBack }: { category: Category; onBack: any
                 ? "All items selected"
                 : `${selectedKeys.size} of ${emails.length} selected`}
             </div>
+            <Button
+              isDisabled={selectedEmails.length === 0}
+              startContent={<TbTrash className="text-lg" />}
+              color="danger"
+              onPress={() => handleDelete()}
+            >
+              Delete
+            </Button>
             <Button
               isDisabled={selectedEmails.length === 0}
               startContent={<TbMailOff className="text-lg" />}
