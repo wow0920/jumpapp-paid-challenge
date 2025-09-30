@@ -1,6 +1,8 @@
 # AI Email Sorter (Vite + React + Express + TypeScript)
 
-https://jumpapp-paid-challenge.onrender.com/
+Requirements: https://jumpapp.notion.site/Paid-Challenge-August-1-2025-23a5ee0c36548096b366f3e2a029cdc9
+
+Production: https://jumpapp-paid-challenge.onrender.com/
 
 This project is a full‑stack Vite React app with an Express (TypeScript) backend. It connects to Gmail via OAuth, auto‑categorizes incoming emails using AI, archives the originals in Gmail, and lets you bulk delete or unsubscribe via an automated headless browser.
 
